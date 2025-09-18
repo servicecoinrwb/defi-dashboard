@@ -34,7 +34,7 @@
         #transaction-log::-webkit-scrollbar-thumb:hover {
             background: #6b7280;
         }
-        .remove-collateral-btn {
+        .remove-collateral-btn, .delete-tx-btn {
             font-size: 1.5rem;
             line-height: 1;
             padding: 0 0.5rem;
@@ -451,9 +451,12 @@
                         
                         return `
                         <div class="flex justify-between items-center text-sm p-2 rounded-md ${getTxBgColor(tx.type)}">
-                           <div>
-                                <p class="font-medium text-white">${tx.description}</p>
-                                <p class="text-xs text-gray-400">${new Date(tx.date).toLocaleString()}</p>
+                           <div class="flex items-center">
+                               <button data-id="${tx.id}" class="delete-tx-btn text-gray-500 hover:text-red-400 mr-3 text-xl leading-none" title="Delete Transaction">&times;</button>
+                               <div>
+                                    <p class="font-medium text-white">${tx.description}</p>
+                                    <p class="text-xs text-gray-400">${new Date(tx.date).toLocaleString()}</p>
+                               </div>
                            </div>
                            <span class="font-bold ${getTxAmountColor(tx.type, tx.amount)}">
                                 ${formattedAmount}
@@ -471,6 +474,44 @@
                      amount
                  });
                  if (state.transactions.length > 50) state.transactions.pop();
+            };
+
+            const deleteTransactionAndReverse = (txId) => {
+                const txIndex = state.transactions.findIndex(tx => tx.id === txId);
+                if (txIndex === -1) return;
+
+                const txToDelete = state.transactions[txIndex];
+
+                // Reverse the financial action based on transaction type
+                switch (txToDelete.type) {
+                    case 'purchase':
+                        state.ccBalance -= txToDelete.amount;
+                        break;
+                    case 'payment':
+                        state.defiLoanBalance -= txToDelete.amount;
+                        state.ccBalance += txToDelete.amount;
+                        break;
+                    case 'reward':
+                        state.rewardsBalance -= txToDelete.amount;
+                        break;
+                    case 'reward_btc':
+                        state.rewardsBitcoinBalance -= txToDelete.amount;
+                        break;
+                    case 'repayment':
+                        state.defiLoanBalance += txToDelete.amount;
+                        if (txToDelete.description.includes('with Rewards')) {
+                            state.rewardsBalance += txToDelete.amount;
+                        }
+                        break;
+                    // Intentionally not reversing collateral actions as it's complex
+                    case 'collateral_add':
+                    case 'collateral_remove':
+                        break;
+                }
+
+                // Remove the transaction from the log
+                state.transactions.splice(txIndex, 1);
+                updateUI();
             };
 
             const fetchCryptoPrice = async () => {
@@ -504,6 +545,13 @@
             };
 
             // --- EVENT HANDLERS ---
+            DOMElements.transactionLog.addEventListener('click', (e) => {
+                if (e.target.classList.contains('delete-tx-btn')) {
+                    const idToDelete = parseInt(e.target.dataset.id);
+                    deleteTransactionAndReverse(idToDelete);
+                }
+            });
+
             DOMElements.addPurchaseForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const amount = parseFloat(DOMElements.purchaseAmountInput.value);
