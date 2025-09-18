@@ -53,7 +53,7 @@
         </header>
 
         <!-- Dashboard Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
             <!-- Card 1: Credit Card Status -->
             <div class="card rounded-xl shadow-lg p-6">
@@ -98,8 +98,34 @@
                 </div>
             </div>
 
-            <!-- Card 3: Actions -->
-            <div class="card rounded-xl shadow-lg p-6 md:col-span-2 lg:col-span-1">
+            <!-- Card 3: Grail Rewards -->
+            <div class="card rounded-xl shadow-lg p-6">
+                <div class="flex items-center mb-4">
+                     <div class="p-2 bg-teal-500/20 rounded-lg mr-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-400"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                     </div>
+                    <h2 class="text-xl font-semibold text-white">Grail Rewards</h2>
+                </div>
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between"><span>USDC.e Balance:</span> <span id="rewards-balance" class="font-medium text-white">$0.00</span></div>
+                </div>
+                <form id="claim-rewards-form" class="mt-4 pt-4 border-t border-gray-700 space-y-4">
+                    <div>
+                        <label for="rewards-amount" class="block text-sm font-medium text-gray-300">Claim New Rewards</label>
+                        <div class="mt-1 flex rounded-md shadow-sm">
+                            <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-600 bg-gray-700 text-gray-400 sm:text-sm">$</span>
+                            <input type="number" id="rewards-amount" class="flex-1 block w-full rounded-none rounded-r-md bg-gray-800 border-gray-600 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="50.25" step="0.01" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-teal-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-teal-700 transition-colors">Claim Rewards</button>
+                </form>
+                <div class="mt-4">
+                    <button id="repay-with-rewards" class="w-full bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-500 disabled:cursor-not-allowed">Repay Loan with Rewards</button>
+                </div>
+            </div>
+
+            <!-- Card 4: Actions -->
+            <div class="card rounded-xl shadow-lg p-6">
                  <div class="flex items-center mb-4">
                      <div class="p-2 bg-green-500/20 rounded-lg mr-4">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-400"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z"/><path d="M12 8v8"/><path d="m8.5 12.5 7-5"/><path d="m8.5 16.5 7-5"/></svg>
@@ -124,8 +150,8 @@
                 </div>
             </div>
             
-            <!-- Card 4: Transaction Log -->
-            <div class="card rounded-xl shadow-lg p-6 md:col-span-2 lg:col-span-3">
+            <!-- Card 5: Transaction Log -->
+            <div class="card rounded-xl shadow-lg p-6 lg:col-span-4">
                 <h2 class="text-xl font-semibold text-white mb-4">Transaction Log</h2>
                 <div id="transaction-log" class="h-64 overflow-y-auto space-y-3 pr-2">
                     <!-- Transactions will be dynamically inserted here -->
@@ -198,6 +224,10 @@
                 closeModalButton: document.getElementById('close-modal-button'),
                 cancelSettingsButton: document.getElementById('cancel-settings'),
                 settingsForm: document.getElementById('settings-form'),
+                rewardsBalance: document.getElementById('rewards-balance'),
+                claimRewardsForm: document.getElementById('claim-rewards-form'),
+                rewardsAmountInput: document.getElementById('rewards-amount'),
+                repayWithRewardsButton: document.getElementById('repay-with-rewards'),
             };
 
             // --- APPLICATION STATE ---
@@ -211,6 +241,7 @@
                 collateralPrice: 0, // Fetched from API
                 liquidationThreshold: 80,
                 transactions: [],
+                rewardsBalance: 0,
             };
 
             // --- UTILITY FUNCTIONS ---
@@ -220,6 +251,10 @@
                 const savedState = localStorage.getItem('defiCreditDashboardState');
                 if (savedState) {
                     state = JSON.parse(savedState);
+                    // Ensure new properties exist if loading old state
+                    if (state.rewardsBalance === undefined) {
+                        state.rewardsBalance = 0;
+                    }
                 }
             };
             
@@ -231,7 +266,7 @@
             const updateUI = () => {
                 // Derived values
                 const ccAvailable = state.ccLimit - state.ccBalance;
-                const ccUsagePercent = (state.ccBalance / state.ccLimit) * 100;
+                const ccUsagePercent = (state.ccLimit > 0 ? state.ccBalance / state.ccLimit : 0) * 100;
                 const collateralValue = state.collateralAmount * state.collateralPrice;
                 const defiAvailableToBorrow = Math.max(0, state.defiLoanPositionLimit - state.defiLoanBalance);
                 const ltv = collateralValue > 0 ? (state.defiLoanBalance / collateralValue) * 100 : 0;
@@ -247,6 +282,9 @@
                 DOMElements.defiBalance.textContent = formatCurrency(state.defiLoanBalance);
                 DOMElements.defiAvailable.textContent = formatCurrency(defiAvailableToBorrow);
                 
+                // Update Rewards panel
+                DOMElements.rewardsBalance.textContent = formatCurrency(state.rewardsBalance);
+
                 // Update LTV display
                 DOMElements.ltvPercentage.textContent = `${ltv.toFixed(2)}%`;
                 DOMElements.ltvBar.style.width = `${ltv}%`;
@@ -266,18 +304,33 @@
                 DOMElements.liquidationThresholdText.textContent = state.liquidationThreshold;
                 DOMElements.liquidationMarker.style.left = `${state.liquidationThreshold}%`;
 
-
-                // Update Pay with DeFi button state
+                // Update button states
                 DOMElements.payWithDeFiButton.disabled = state.ccBalance <= 0;
+                DOMElements.repayWithRewardsButton.disabled = state.rewardsBalance <= 0 || state.defiLoanBalance <= 0;
+
 
                 // Update Transaction Log
                 renderTransactions();
                 
                 saveState();
             };
-            
-            // --- TRANSACTION LOG RENDERER ---
+
+             // --- TRANSACTION LOG RENDERER ---
             const renderTransactions = () => {
+                const getTxBgColor = (type) => {
+                    switch(type) {
+                        case 'purchase': return 'bg-gray-800';
+                        case 'payment': return 'bg-purple-900/50';
+                        case 'reward': return 'bg-teal-900/50';
+                        case 'repayment': return 'bg-green-900/50';
+                        default: return 'bg-gray-800';
+                    }
+                }
+                const getTxAmountColor = (type, amount) => {
+                    if (type === 'purchase') return 'text-red-400';
+                    return 'text-green-400';
+                }
+
                 if(state.transactions.length === 0) {
                      DOMElements.transactionLog.innerHTML = `<p class="text-gray-500 text-center pt-8">No transactions yet.</p>`;
                      return;
@@ -285,13 +338,13 @@
                 
                 DOMElements.transactionLog.innerHTML = state.transactions
                     .map(tx => `
-                        <div class="flex justify-between items-center text-sm p-2 rounded-md ${tx.type === 'purchase' ? 'bg-gray-800' : 'bg-purple-900/50'}">
+                        <div class="flex justify-between items-center text-sm p-2 rounded-md ${getTxBgColor(tx.type)}">
                            <div>
                                 <p class="font-medium text-white">${tx.description}</p>
                                 <p class="text-xs text-gray-400">${new Date(tx.date).toLocaleString()}</p>
                            </div>
-                           <span class="font-bold ${tx.amount > 0 ? 'text-red-400' : 'text-green-400'}">
-                                ${tx.type === 'payment' ? '+' : ''}${formatCurrency(tx.amount)}
+                           <span class="font-bold ${getTxAmountColor(tx.type, tx.amount)}">
+                                ${tx.amount > 0 && tx.type !== 'purchase' ? '+' : ''}${formatCurrency(tx.amount)}
                            </span>
                         </div>
                     `).join('');
@@ -359,6 +412,27 @@
                 addTransaction('payment', `Payoff from DeFi`, amountToPay);
                 updateUI();
             });
+
+            DOMElements.claimRewardsForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const amount = parseFloat(DOMElements.rewardsAmountInput.value);
+                if (isNaN(amount) || amount <= 0) return;
+
+                state.rewardsBalance += amount;
+                addTransaction('reward', 'Grail Rewards Claimed', amount);
+                DOMElements.rewardsAmountInput.value = '';
+                updateUI();
+            });
+
+            DOMElements.repayWithRewardsButton.addEventListener('click', () => {
+                const amountToRepay = Math.min(state.rewardsBalance, state.defiLoanBalance);
+                if(amountToRepay <= 0) return;
+
+                state.rewardsBalance -= amountToRepay;
+                state.defiLoanBalance -= amountToRepay;
+                addTransaction('repayment', 'Loan Repayment with Rewards', amountToRepay);
+                updateUI();
+            });
             
             // --- MODAL HANDLING ---
             const openModal = () => {
@@ -397,3 +471,4 @@
     </script>
 </body>
 </html>
+
