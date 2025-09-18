@@ -34,6 +34,12 @@
         #transaction-log::-webkit-scrollbar-thumb:hover {
             background: #6b7280;
         }
+        .remove-collateral-btn {
+            font-size: 1.5rem;
+            line-height: 1;
+            padding: 0 0.5rem;
+            border-radius: 50%;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-200 antialiased">
@@ -84,9 +90,10 @@
                     <h2 class="text-xl font-semibold text-white">DeFi Loan</h2>
                 </div>
                 <div class="space-y-3 text-sm">
-                    <div class="flex justify-between"><span>Collateral Value:</span> <span id="collateral-value" class="font-medium text-white">$0.00</span></div>
+                    <div class="flex justify-between"><span>Total Collateral Value:</span> <span id="collateral-value" class="font-medium text-white">$0.00</span></div>
                     <div class="flex justify-between"><span>Loan Balance:</span> <span id="defi-balance" class="font-medium text-white">$0.00</span></div>
                     <div class="flex justify-between"><span>Available to Borrow:</span> <span id="defi-available" class="font-medium text-green-400">$5,000.00</span></div>
+                    <div class="flex justify-between"><span>Borrow APR:</span> <span id="borrow-apr-display" class="font-medium text-white">0.00%</span></div>
                 </div>
                 <div class="mt-4">
                     <p class="text-sm font-medium text-white mb-1">Loan-to-Value (LTV): <span id="ltv-percentage">0.00%</span></p>
@@ -106,12 +113,8 @@
                     </div>
                     <h2 class="text-xl font-semibold text-white">Collateral Details</h2>
                 </div>
-                <div class="space-y-3 text-sm">
-                    <div class="flex justify-between"><span>Asset:</span> <span id="collateral-asset" class="font-medium text-white">GRAIL</span></div>
-                    <div class="flex justify-between"><span>Amount:</span> <span id="collateral-amount-display" class="font-medium text-white">0.00</span></div>
-                    <div class="flex justify-between"><span>Current Price:</span> <span id="current-collateral-price" class="font-medium text-white">$0.00</span></div>
-                    <div class="flex justify-between"><span>Liquidation Price:</span> <span id="liquidation-price-display" class="font-medium text-red-400">$0.00</span></div>
-                    <div class="flex justify-between"><span>Borrow APR:</span> <span id="borrow-apr-display" class="font-medium text-white">0.00%</span></div>
+                <div id="collateral-list" class="space-y-2 h-40 overflow-y-auto pr-2">
+                    <!-- Collateral items will be dynamically inserted here -->
                 </div>
             </div>
 
@@ -142,49 +145,68 @@
             </div>
 
             <!-- Card: Actions -->
-            <div class="card rounded-xl shadow-lg p-6">
+            <div class="card rounded-xl shadow-lg p-6 lg:col-span-2">
                  <div class="flex items-center mb-4">
                      <div class="p-2 bg-green-500/20 rounded-lg mr-4">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-400"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z"/><path d="M12 8v8"/><path d="m8.5 12.5 7-5"/><path d="m8.5 16.5 7-5"/></svg>
                      </div>
                     <h2 class="text-xl font-semibold text-white">Financial Actions</h2>
                 </div>
-                <!-- Add Purchase Form -->
-                <form id="add-purchase-form" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Left Column: CC & Loan Repay -->
                     <div>
-                        <label for="purchase-amount" class="block text-sm font-medium text-gray-300">New Card Purchase</label>
-                        <div class="mt-1 flex rounded-md shadow-sm">
-                            <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-600 bg-gray-700 text-gray-400 sm:text-sm">$</span>
-                            <input type="number" id="purchase-amount" class="flex-1 block w-full rounded-none rounded-r-md bg-gray-800 border-gray-600 focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="150.75" step="0.01" required>
+                        <form id="add-purchase-form" class="space-y-4">
+                            <div>
+                                <label for="purchase-amount" class="block text-sm font-medium text-gray-300">New Card Purchase</label>
+                                <div class="mt-1 flex rounded-md shadow-sm">
+                                    <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-600 bg-gray-700 text-gray-400 sm:text-sm">$</span>
+                                    <input type="number" id="purchase-amount" class="flex-1 block w-full rounded-none rounded-r-md bg-gray-800 border-gray-600 focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="150.75" step="0.01" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">Add Purchase</button>
+                        </form>
+                        <div class="mt-4 pt-4 border-t border-gray-700">
+                            <button id="pay-with-defi" class="w-full bg-purple-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors disabled:bg-gray-500 disabled:cursor-not-allowed">Pay Card with DeFi Loan</button>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-gray-700">
+                            <form id="repay-loan-form" class="space-y-4">
+                                <div>
+                                    <label for="repay-amount" class="block text-sm font-medium text-gray-300">Repay Loan from Source</label>
+                                    <div class="mt-1 flex rounded-md shadow-sm">
+                                        <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-600 bg-gray-700 text-gray-400 sm:text-sm">$</span>
+                                        <input type="number" id="repay-amount" class="flex-1 block w-full rounded-none rounded-r-md bg-gray-800 border-gray-600 focus:ring-green-500 focus:border-green-500 sm:text-sm" placeholder="1000.00" step="0.01" required>
+                                    </div>
+                                </div>
+                                <button type="submit" class="w-full bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">Repay Loan</button>
+                            </form>
                         </div>
                     </div>
-                    <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-blue-500">Add Purchase</button>
-                </form>
-                <!-- Pay with DeFi Button -->
-                <div class="mt-4 pt-4 border-t border-gray-700">
-                    <button id="pay-with-defi" class="w-full bg-purple-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors disabled:bg-gray-500 disabled:cursor-not-allowed">Pay Card with DeFi Loan</button>
-                    <p class="text-xs text-center text-gray-400 mt-2">Moves credit card balance to DeFi loan</p>
-                </div>
-                <!-- New Repay Form -->
-                <div class="mt-4 pt-4 border-t border-gray-700">
-                    <form id="repay-loan-form" class="space-y-4">
-                        <div>
-                            <label for="repay-amount" class="block text-sm font-medium text-gray-300">Repay Loan from Source</label>
-                            <div class="mt-1 flex rounded-md shadow-sm">
-                                <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-600 bg-gray-700 text-gray-400 sm:text-sm">$</span>
-                                <input type="number" id="repay-amount" class="flex-1 block w-full rounded-none rounded-r-md bg-gray-800 border-gray-600 focus:ring-green-500 focus:border-green-500 sm:text-sm" placeholder="1000.00" step="0.01" required>
+                    <!-- Right Column: Collateral Management -->
+                    <div>
+                        <form id="add-collateral-form" class="space-y-4">
+                            <h3 class="text-md font-semibold text-white -mb-2">Manage Collateral</h3>
+                            <div>
+                                <label for="collateral-name-input" class="block text-sm font-medium text-gray-300">Asset Name</label>
+                                <input type="text" id="collateral-name-input" class="mt-1 w-full bg-gray-800 border-gray-600 rounded-md shadow-sm" placeholder="e.g., GRAIL" required>
                             </div>
-                        </div>
-                        <button type="submit" class="w-full bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">Repay Loan</button>
-                    </form>
+                             <div>
+                                <label for="collateral-amount-input" class="block text-sm font-medium text-gray-300">Amount</label>
+                                <input type="number" id="collateral-amount-input" step="any" class="mt-1 w-full bg-gray-800 border-gray-600 rounded-md shadow-sm" placeholder="e.g., 130.009" required>
+                            </div>
+                            <div>
+                                <label for="collateral-ticker-input" class="block text-sm font-medium text-gray-300">CoinGecko ID</label>
+                                <input type="text" id="collateral-ticker-input" class="mt-1 w-full bg-gray-800 border-gray-600 rounded-md shadow-sm" placeholder="e.g., camelot-token" required>
+                            </div>
+                            <button type="submit" class="w-full bg-orange-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-orange-700 transition-colors">Add Collateral</button>
+                        </form>
+                    </div>
                 </div>
             </div>
             
             <!-- Card: Transaction Log -->
-            <div class="card rounded-xl shadow-lg p-6 md:col-span-2 lg:col-span-3">
+            <div class="card rounded-xl shadow-lg p-6 lg:col-span-3">
                 <h2 class="text-xl font-semibold text-white mb-4">Transaction Log</h2>
                 <div id="transaction-log" class="h-64 overflow-y-auto space-y-3 pr-2">
-                    <!-- Transactions will be dynamically inserted here -->
                      <p class="text-gray-500 text-center pt-8">No transactions yet.</p>
                 </div>
             </div>
@@ -197,41 +219,25 @@
     <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50 hidden">
         <div class="card w-full max-w-md p-6 rounded-xl shadow-2xl">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold text-white">Settings</h2>
+                <h2 class="text-2xl font-bold text-white">General Settings</h2>
                 <button id="close-modal-button" class="text-gray-400 hover:text-white">&times;</button>
             </div>
             <form id="settings-form" class="space-y-4">
                 <div>
                     <label for="setting-cc-limit" class="block text-sm font-medium text-gray-300">Credit Card Limit ($)</label>
-                    <input type="number" id="setting-cc-limit" class="mt-1 w-full bg-gray-800 border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" value="5000">
+                    <input type="number" id="setting-cc-limit" class="mt-1 w-full bg-gray-800 border-gray-600 rounded-md shadow-sm" step="any" required>
                 </div>
                  <div>
                     <label for="setting-defi-limit" class="block text-sm font-medium text-gray-300">DeFi Loan Position Limit ($)</label>
-                    <input type="number" id="setting-defi-limit" class="mt-1 w-full bg-gray-800 border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" value="5000">
-                </div>
-                <div>
-                    <label for="setting-collateral-asset" class="block text-sm font-medium text-gray-300">Collateral Asset Name (e.g., GRAIL)</label>
-                    <input type="text" id="setting-collateral-asset" class="mt-1 w-full bg-gray-800 border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" value="GRAIL">
-                </div>
-                <div>
-                    <label for="setting-collateral-amount" class="block text-sm font-medium text-gray-300">Collateral Amount</label>
-                    <input type="number" id="setting-collateral-amount" step="any" class="mt-1 w-full bg-gray-800 border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" value="1.5">
-                </div>
-                <div>
-                    <label for="setting-collateral-ticker" class="block text-sm font-medium text-gray-300">Collateral CoinGecko ID (e.g., camelot-token)</label>
-                    <input type="text" id="setting-collateral-ticker" class="mt-1 w-full bg-gray-800 border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" value="ethereum">
-                </div>
-                 <div>
-                    <label for="setting-liquidation-price" class="block text-sm font-medium text-gray-300">Liquidation Price ($)</label>
-                    <input type="number" id="setting-liquidation-price" step="any" class="mt-1 w-full bg-gray-800 border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" value="158.25">
+                    <input type="number" id="setting-defi-limit" class="mt-1 w-full bg-gray-800 border-gray-600 rounded-md shadow-sm" step="any" required>
                 </div>
                  <div>
                     <label for="setting-borrow-apr" class="block text-sm font-medium text-gray-300">Borrow APR (%)</label>
-                    <input type="number" id="setting-borrow-apr" step="any" class="mt-1 w-full bg-gray-800 border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" value="15.7">
+                    <input type="number" id="setting-borrow-apr" step="any" class="mt-1 w-full bg-gray-800 border-gray-600 rounded-md shadow-sm" required>
                 </div>
                 <div>
                     <label for="setting-liquidation-threshold" class="block text-sm font-medium text-gray-300">LTV Liquidation Threshold (%)</label>
-                    <input type="number" id="setting-liquidation-threshold" class="mt-1 w-full bg-gray-800 border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" value="80">
+                    <input type="number" id="setting-liquidation-threshold" class="mt-1 w-full bg-gray-800 border-gray-600 rounded-md shadow-sm" required>
                 </div>
                 <div class="pt-4 flex justify-end space-x-3">
                     <button type="button" id="cancel-settings" class="px-4 py-2 rounded-lg bg-gray-600 hover:bg-gray-500 transition-colors">Cancel</button>
@@ -270,28 +276,31 @@
                 claimRewardsForm: document.getElementById('claim-rewards-form'),
                 rewardsAmountInput: document.getElementById('rewards-amount'),
                 repayWithRewardsButton: document.getElementById('repay-with-rewards'),
-                collateralAsset: document.getElementById('collateral-asset'),
-                collateralAmountDisplay: document.getElementById('collateral-amount-display'),
-                currentCollateralPrice: document.getElementById('current-collateral-price'),
-                liquidationPriceDisplay: document.getElementById('liquidation-price-display'),
+                collateralList: document.getElementById('collateral-list'),
                 borrowAPRDisplay: document.getElementById('borrow-apr-display'),
                 repayLoanForm: document.getElementById('repay-loan-form'),
                 repayAmountInput: document.getElementById('repay-amount'),
+                addCollateralForm: document.getElementById('add-collateral-form'),
+                collateralNameInput: document.getElementById('collateral-name-input'),
+                collateralAmountInput: document.getElementById('collateral-amount-input'),
+                collateralTickerInput: document.getElementById('collateral-ticker-input'),
             };
 
             // --- APPLICATION STATE (PRE-FILLED FROM IMAGE) ---
             let state = {
                 ccLimit: 5000,
                 ccBalance: 0,
-                defiLoanPositionLimit: 18290.82, // From image: 14402.16 borrowed + 3888.66 available
+                defiLoanPositionLimit: 18290.82,
                 defiLoanBalance: 14402.16,
-                collateralAsset: 'GRAIL',
-                collateralAmount: 130.009,
-                collateralTicker: 'camelot-token', // CoinGecko ID for Camelot Token (GRAIL)
-                collateralPrice: 0, // Fetched from API
-                liquidationPrice: 158.25,
+                collaterals: [{
+                    id: Date.now(),
+                    assetName: 'GRAIL',
+                    amount: 130.009,
+                    ticker: 'camelot-token',
+                    price: 0
+                }],
                 borrowAPR: 15.7,
-                liquidationThreshold: 80, // Default, can be adjusted
+                liquidationThreshold: 80,
                 transactions: [],
                 rewardsBalance: 0,
             };
@@ -303,12 +312,22 @@
             const loadState = () => {
                 const savedState = localStorage.getItem('defiCreditDashboardState');
                 if (savedState) {
-                    state = JSON.parse(savedState);
-                    // Ensure new properties exist if loading old state
-                    if (state.rewardsBalance === undefined) state.rewardsBalance = 0;
-                    if (state.collateralAsset === undefined) state.collateralAsset = 'GRAIL';
-                    if (state.liquidationPrice === undefined) state.liquidationPrice = 158.25;
-                    if (state.borrowAPR === undefined) state.borrowAPR = 15.7;
+                    let loaded = JSON.parse(savedState);
+                    // Migration from old structure to new
+                    if (loaded.collateralAmount && !loaded.collaterals) {
+                        loaded.collaterals = [{
+                            id: Date.now(),
+                            assetName: loaded.collateralAsset || 'GRAIL',
+                            amount: loaded.collateralAmount,
+                            ticker: loaded.collateralTicker,
+                            price: 0
+                        }];
+                        delete loaded.collateralAmount;
+                        delete loaded.collateralAsset;
+                        delete loaded.collateralTicker;
+                        delete loaded.liquidationPrice;
+                    }
+                    state = { ...state, ...loaded };
                 }
             };
             
@@ -321,11 +340,11 @@
                 // Derived values
                 const ccAvailable = state.ccLimit - state.ccBalance;
                 const ccUsagePercent = (state.ccLimit > 0 ? state.ccBalance / state.ccLimit : 0) * 100;
-                const collateralValue = state.collateralAmount * state.collateralPrice;
+                
+                const totalCollateralValue = state.collaterals.reduce((total, c) => total + (c.amount * c.price), 0);
+                
                 const defiAvailableToBorrow = Math.max(0, state.defiLoanPositionLimit - state.defiLoanBalance);
-                const ltv = collateralValue > 0 ? (state.defiLoanBalance / collateralValue) * 100 : 0;
-                const currentPrice = state.collateralPrice > 0 ? state.collateralPrice : (collateralValue / state.collateralAmount);
-
+                const ltv = totalCollateralValue > 0 ? (state.defiLoanBalance / totalCollateralValue) * 100 : 0;
 
                 // Update Credit Card panel
                 DOMElements.ccLimit.textContent = formatCurrency(state.ccLimit);
@@ -334,16 +353,31 @@
                 DOMElements.ccProgress.style.width = `${ccUsagePercent}%`;
 
                 // Update DeFi Loan panel
-                DOMElements.collateralValue.textContent = formatCurrency(collateralValue);
+                DOMElements.collateralValue.textContent = formatCurrency(totalCollateralValue);
                 DOMElements.defiBalance.textContent = formatCurrency(state.defiLoanBalance);
                 DOMElements.defiAvailable.textContent = formatCurrency(defiAvailableToBorrow);
+                DOMElements.borrowAPRDisplay.textContent = `${state.borrowAPR}%`;
                 
                 // Update Collateral Details panel
-                DOMElements.collateralAsset.textContent = state.collateralAsset;
-                DOMElements.collateralAmountDisplay.textContent = formatNumber(state.collateralAmount);
-                DOMElements.currentCollateralPrice.textContent = formatCurrency(currentPrice);
-                DOMElements.liquidationPriceDisplay.textContent = formatCurrency(state.liquidationPrice);
-                DOMElements.borrowAPRDisplay.textContent = `${state.borrowAPR}%`;
+                const collateralListEl = DOMElements.collateralList;
+                collateralListEl.innerHTML = '';
+                if (state.collaterals.length > 0) {
+                    state.collaterals.forEach(c => {
+                        const itemValue = c.amount * c.price;
+                        const itemEl = document.createElement('div');
+                        itemEl.className = 'flex justify-between items-center text-sm p-2 rounded-md bg-gray-700/50';
+                        itemEl.innerHTML = `
+                            <div>
+                                <p class="font-bold text-white">${c.assetName} (${formatNumber(c.amount)})</p>
+                                <p class="text-xs text-gray-400">Value: ${formatCurrency(itemValue)} (@ ${formatCurrency(c.price)})</p>
+                            </div>
+                            <button data-id="${c.id}" class="remove-collateral-btn text-red-400 hover:text-red-300 transition-colors" title="Remove Collateral">&times;</button>
+                        `;
+                        collateralListEl.appendChild(itemEl);
+                    });
+                } else {
+                    collateralListEl.innerHTML = `<p class="text-gray-500 text-center text-sm pt-12">No collateral deposited.</p>`;
+                }
 
                 // Update Rewards panel
                 DOMElements.rewardsBalance.textContent = formatCurrency(state.rewardsBalance);
@@ -352,33 +386,26 @@
                 DOMElements.ltvPercentage.textContent = `${ltv.toFixed(2)}%`;
                 DOMElements.ltvBar.style.width = `${ltv}%`;
                 
-                // Update LTV bar color based on risk
                 const dangerZone = state.liquidationThreshold - 15;
                 const warningZone = state.liquidationThreshold - 30;
                 if (ltv >= dangerZone) {
-                    DOMElements.ltvBar.className = 'bg-red-500 h-2.5 rounded-full';
+                    DOMElements.ltvBar.className = 'bg-red-500 h-2.5 rounded-full transition-all';
                 } else if (ltv >= warningZone) {
-                    DOMElements.ltvBar.className = 'bg-yellow-500 h-2.5 rounded-full';
+                    DOMElements.ltvBar.className = 'bg-yellow-500 h-2.5 rounded-full transition-all';
                 } else {
-                    DOMElements.ltvBar.className = 'bg-green-500 h-2.5 rounded-full';
+                    DOMElements.ltvBar.className = 'bg-green-500 h-2.5 rounded-full transition-all';
                 }
                 
-                // Update liquidation marker position
                 DOMElements.liquidationThresholdText.textContent = state.liquidationThreshold;
                 DOMElements.liquidationMarker.style.left = `${state.liquidationThreshold}%`;
 
-                // Update button states
                 DOMElements.payWithDeFiButton.disabled = state.ccBalance <= 0;
                 DOMElements.repayWithRewardsButton.disabled = state.rewardsBalance <= 0 || state.defiLoanBalance <= 0;
 
-
-                // Update Transaction Log
                 renderTransactions();
-                
                 saveState();
             };
 
-             // --- TRANSACTION LOG RENDERER ---
             const renderTransactions = () => {
                 const getTxBgColor = (type) => {
                     switch(type) {
@@ -386,11 +413,13 @@
                         case 'payment': return 'bg-purple-900/50';
                         case 'reward': return 'bg-teal-900/50';
                         case 'repayment': return 'bg-green-900/50';
+                        case 'collateral_add': return 'bg-orange-900/50';
+                        case 'collateral_remove': return 'bg-red-900/50';
                         default: return 'bg-gray-800';
                     }
                 }
                 const getTxAmountColor = (type, amount) => {
-                    if (type === 'purchase') return 'text-red-400';
+                    if (type === 'purchase' || type === 'collateral_remove') return 'text-red-400';
                     return 'text-green-400';
                 }
 
@@ -407,7 +436,7 @@
                                 <p class="text-xs text-gray-400">${new Date(tx.date).toLocaleString()}</p>
                            </div>
                            <span class="font-bold ${getTxAmountColor(tx.type, tx.amount)}">
-                                ${tx.amount > 0 && tx.type !== 'purchase' ? '+' : ''}${formatCurrency(tx.amount)}
+                                ${tx.amount > 0 && !['purchase', 'collateral_remove'].includes(tx.type) ? '+' : ''}${formatCurrency(tx.amount)}
                            </span>
                         </div>
                     `).join('');
@@ -421,21 +450,28 @@
                      description,
                      amount
                  });
-                 if (state.transactions.length > 50) { // Keep log from getting too long
-                     state.transactions.pop();
-                 }
+                 if (state.transactions.length > 50) state.transactions.pop();
             };
 
-            // --- API CALL ---
             const fetchCryptoPrice = async () => {
-                if (!state.collateralTicker) return;
+                if (state.collaterals.length === 0) {
+                    updateUI();
+                    return;
+                }
+                const tickers = [...new Set(state.collaterals.map(c => c.ticker))].join(',');
+                if (!tickers) {
+                    updateUI();
+                    return;
+                }
                 try {
-                    const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${state.collateralTicker}&vs_currencies=usd`);
+                    const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${tickers}&vs_currencies=usd`);
                     if (!response.ok) throw new Error('Network response was not ok');
                     const data = await response.json();
-                    if (data[state.collateralTicker] && data[state.collateralTicker].usd) {
-                        state.collateralPrice = data[state.collateralTicker].usd;
-                    }
+                    state.collaterals.forEach(c => {
+                        if (data[c.ticker] && data[c.ticker].usd) {
+                            c.price = data[c.ticker].usd;
+                        }
+                    });
                 } catch (error) {
                     console.error('Failed to fetch crypto price:', error);
                 } finally {
@@ -448,12 +484,10 @@
                 e.preventDefault();
                 const amount = parseFloat(DOMElements.purchaseAmountInput.value);
                 if (isNaN(amount) || amount <= 0) return;
-
                 if (state.ccBalance + amount > state.ccLimit) {
                     alert('This purchase exceeds your credit limit.');
                     return;
                 }
-
                 state.ccBalance += amount;
                 addTransaction('purchase', `Credit Card Purchase`, amount);
                 DOMElements.purchaseAmountInput.value = '';
@@ -463,12 +497,10 @@
             DOMElements.payWithDeFiButton.addEventListener('click', () => {
                 const amountToPay = state.ccBalance;
                 if (amountToPay <= 0) return;
-                
                 if (state.defiLoanBalance + amountToPay > state.defiLoanPositionLimit) {
                     alert('This payment exceeds your DeFi loan position limit.');
                     return;
                 }
-
                 state.defiLoanBalance += amountToPay;
                 state.ccBalance = 0;
                 addTransaction('payment', `Payoff from DeFi`, amountToPay);
@@ -479,7 +511,6 @@
                 e.preventDefault();
                 const amount = parseFloat(DOMElements.rewardsAmountInput.value);
                 if (isNaN(amount) || amount <= 0) return;
-
                 state.rewardsBalance += amount;
                 addTransaction('reward', 'Grail Rewards Claimed', amount);
                 DOMElements.rewardsAmountInput.value = '';
@@ -489,7 +520,6 @@
             DOMElements.repayWithRewardsButton.addEventListener('click', () => {
                 const amountToRepay = Math.min(state.rewardsBalance, state.defiLoanBalance);
                 if(amountToRepay <= 0) return;
-
                 state.rewardsBalance -= amountToRepay;
                 state.defiLoanBalance -= amountToRepay;
                 addTransaction('repayment', 'Loan Repayment with Rewards', amountToRepay);
@@ -500,29 +530,52 @@
                 e.preventDefault();
                 const amount = parseFloat(DOMElements.repayAmountInput.value);
                 if (isNaN(amount) || amount <= 0) return;
-
                 const amountToRepay = Math.min(amount, state.defiLoanBalance);
                 if (amount > state.defiLoanBalance) {
                     alert(`Repayment amount exceeds loan balance. Repaying ${formatCurrency(amountToRepay)}.`);
                 }
-                
                 if (amountToRepay <= 0) return;
-
                 state.defiLoanBalance -= amountToRepay;
                 addTransaction('repayment', 'Loan Repayment from Deposit', amountToRepay);
                 DOMElements.repayAmountInput.value = '';
                 updateUI();
             });
+
+            DOMElements.addCollateralForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const newCollateral = {
+                    id: Date.now(),
+                    assetName: DOMElements.collateralNameInput.value.trim(),
+                    amount: parseFloat(DOMElements.collateralAmountInput.value),
+                    ticker: DOMElements.collateralTickerInput.value.toLowerCase().trim(),
+                    price: 0
+                };
+                if (!newCollateral.assetName || !newCollateral.ticker || isNaN(newCollateral.amount) || newCollateral.amount <= 0) {
+                    alert('Please fill out all collateral fields correctly.');
+                    return;
+                }
+                state.collaterals.push(newCollateral);
+                addTransaction('collateral_add', `Deposited ${newCollateral.assetName}`, newCollateral.amount);
+                DOMElements.addCollateralForm.reset();
+                fetchCryptoPrice();
+            });
+
+            DOMElements.collateralList.addEventListener('click', (e) => {
+                if (e.target.classList.contains('remove-collateral-btn')) {
+                    const idToRemove = parseInt(e.target.dataset.id);
+                    const collateralToRemove = state.collaterals.find(c => c.id === idToRemove);
+                    if (collateralToRemove) {
+                        addTransaction('collateral_remove', `Withdrew ${collateralToRemove.assetName}`, collateralToRemove.amount);
+                    }
+                    state.collaterals = state.collaterals.filter(c => c.id !== idToRemove);
+                    updateUI();
+                }
+            });
             
             // --- MODAL HANDLING ---
             const openModal = () => {
-                // Populate modal with current state
                 document.getElementById('setting-cc-limit').value = state.ccLimit;
                 document.getElementById('setting-defi-limit').value = state.defiLoanPositionLimit;
-                document.getElementById('setting-collateral-asset').value = state.collateralAsset;
-                document.getElementById('setting-collateral-amount').value = state.collateralAmount;
-                document.getElementById('setting-collateral-ticker').value = state.collateralTicker;
-                document.getElementById('setting-liquidation-price').value = state.liquidationPrice;
                 document.getElementById('setting-borrow-apr').value = state.borrowAPR;
                 document.getElementById('setting-liquidation-threshold').value = state.liquidationThreshold;
                 DOMElements.settingsModal.classList.remove('hidden');
@@ -538,21 +591,16 @@
                 e.preventDefault();
                 state.ccLimit = parseFloat(document.getElementById('setting-cc-limit').value);
                 state.defiLoanPositionLimit = parseFloat(document.getElementById('setting-defi-limit').value);
-                state.collateralAsset = document.getElementById('setting-collateral-asset').value;
-                state.collateralAmount = parseFloat(document.getElementById('setting-collateral-amount').value);
-                state.collateralTicker = document.getElementById('setting-collateral-ticker').value.toLowerCase().trim();
-                state.liquidationPrice = parseFloat(document.getElementById('setting-liquidation-price').value);
                 state.borrowAPR = parseFloat(document.getElementById('setting-borrow-apr').value);
                 state.liquidationThreshold = parseFloat(document.getElementById('setting-liquidation-threshold').value);
-                
                 closeModal();
-                fetchCryptoPrice(); // Re-fetch price with new ticker and update UI
+                updateUI();
             });
 
             // --- INITIALIZATION ---
             loadState();
             fetchCryptoPrice();
-            setInterval(fetchCryptoPrice, 60000); // Refresh crypto price every 60 seconds
+            setInterval(fetchCryptoPrice, 60000);
         });
     </script>
 </body>
