@@ -91,7 +91,9 @@
                 </div>
                 <div class="space-y-3 text-sm">
                     <div class="flex justify-between"><span>Total Collateral Value:</span> <span id="collateral-value" class="font-medium text-white">$0.00</span></div>
-                    <div class="flex justify-between"><span>Loan Balance:</span> <span id="defi-balance" class="font-medium text-white">$14,402.26</span></div>
+                    <div class="flex justify-between"><span>Loan Principal:</span> <span id="defi-balance" class="font-medium text-white">$14,402.26</span></div>
+                    <div class="flex justify-between"><span>Interest Accrued:</span> <span id="defi-interest" class="font-medium text-red-400">$0.00</span></div>
+                    <div class="flex justify-between"><span>Total Owed:</span> <span id="defi-total-owed" class="font-medium text-white">$14,402.26</span></div>
                     <div class="flex justify-between"><span>Available to Borrow:</span> <span id="defi-available" class="font-medium text-green-400">$5,000.00</span></div>
                     <div class="flex justify-between"><span>Borrow APR:</span> <span id="borrow-apr-display" class="font-medium text-white">0.00%</span></div>
                 </div>
@@ -180,6 +182,9 @@
                     </form>
                     <div class="pt-4 border-t border-gray-700">
                         <button id="pay-with-defi" class="w-full bg-purple-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors disabled:bg-gray-500 disabled:cursor-not-allowed">Pay Card with DeFi Loan</button>
+                    </div>
+                     <div class="pt-4 border-t border-gray-700">
+                        <button id="accrue-interest" class="w-full bg-red-800 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-700 transition-colors">Accrue Daily Interest</button>
                     </div>
                 </div>
             </div>
@@ -279,6 +284,8 @@
                 ccLimit: document.getElementById('cc-limit'),
                 ccProgress: document.getElementById('cc-progress'),
                 defiBalance: document.getElementById('defi-balance'),
+                defiInterest: document.getElementById('defi-interest'),
+                defiTotalOwed: document.getElementById('defi-total-owed'),
                 defiAvailable: document.getElementById('defi-available'),
                 collateralValue: document.getElementById('collateral-value'),
                 ltvPercentage: document.getElementById('ltv-percentage'),
@@ -288,6 +295,7 @@
                 addPurchaseForm: document.getElementById('add-purchase-form'),
                 purchaseAmountInput: document.getElementById('purchase-amount'),
                 payWithDeFiButton: document.getElementById('pay-with-defi'),
+                accrueInterestButton: document.getElementById('accrue-interest'),
                 transactionLog: document.getElementById('transaction-log'),
                 settingsButton: document.getElementById('settings-button'),
                 settingsModal: document.getElementById('settings-modal'),
@@ -315,7 +323,8 @@
                 ccLimit: 5000,
                 ccBalance: 0,
                 defiLoanPositionLimit: 18290.82,
-                defiLoanBalance: 14402.26, 
+                defiLoanBalance: 14402.26,
+                defiInterestAccrued: 0,
                 collaterals: [{
                     id: Date.now(),
                     assetName: 'GRAIL',
@@ -356,9 +365,10 @@
                 const ccUsagePercent = (state.ccLimit > 0 ? state.ccBalance / state.ccLimit : 0) * 100;
                 
                 const totalCollateralValue = state.collaterals.reduce((total, c) => total + (c.amount * c.price), 0);
-                
-                const defiAvailableToBorrow = Math.max(0, state.defiLoanPositionLimit - state.defiLoanBalance);
-                const ltv = totalCollateralValue > 0 ? (state.defiLoanBalance / totalCollateralValue) * 100 : 0;
+                const totalOwed = state.defiLoanBalance + state.defiInterestAccrued;
+
+                const defiAvailableToBorrow = Math.max(0, state.defiLoanPositionLimit - totalOwed);
+                const ltv = totalCollateralValue > 0 ? (totalOwed / totalCollateralValue) * 100 : 0;
 
                 // Update panels
                 DOMElements.ccLimit.textContent = formatCurrency(state.ccLimit);
@@ -368,6 +378,8 @@
 
                 DOMElements.collateralValue.textContent = formatCurrency(totalCollateralValue);
                 DOMElements.defiBalance.textContent = formatCurrency(state.defiLoanBalance);
+                DOMElements.defiInterest.textContent = formatCurrency(state.defiInterestAccrued);
+                DOMElements.defiTotalOwed.textContent = formatCurrency(totalOwed);
                 DOMElements.defiAvailable.textContent = formatCurrency(defiAvailableToBorrow);
                 DOMElements.borrowAPRDisplay.textContent = `${state.borrowAPR}%`;
                 
@@ -415,7 +427,7 @@
                 DOMElements.liquidationMarker.style.left = `${state.liquidationThreshold}%`;
 
                 DOMElements.payWithDeFiButton.disabled = state.ccBalance <= 0;
-                DOMElements.repayWithRewardsButton.disabled = state.rewardsBalance <= 0 || state.defiLoanBalance <= 0;
+                DOMElements.repayWithRewardsButton.disabled = state.rewardsBalance <= 0 || totalOwed <= 0;
 
                 renderTransactions();
                 saveState();
@@ -431,11 +443,12 @@
                         case 'repayment': return 'bg-green-900/50';
                         case 'collateral_add': return 'bg-orange-900/50';
                         case 'collateral_remove': return 'bg-red-900/50';
+                        case 'interest': return 'bg-red-900/50';
                         default: return 'bg-gray-800';
                     }
                 }
                 const getTxAmountColor = (type, amount) => {
-                    if (type === 'purchase' || type === 'collateral_remove') return 'text-red-400';
+                    if (['purchase', 'collateral_remove', 'interest'].includes(type)) return 'text-red-400';
                     return 'text-green-400';
                 }
 
@@ -447,7 +460,14 @@
                 DOMElements.transactionLog.innerHTML = state.transactions
                     .map(tx => {
                         const isBtcTx = tx.type === 'reward_btc';
-                        const formattedAmount = isBtcTx ? `+${formatBTC(tx.amount)}` : `${tx.amount > 0 && !['purchase', 'collateral_remove'].includes(tx.type) ? '+' : ''}${formatCurrency(tx.amount)}`;
+                        let formattedAmount;
+                        if(isBtcTx) {
+                            formattedAmount = `+${formatBTC(tx.amount)}`;
+                        } else if (getTxAmountColor(tx.type) === 'text-red-400') {
+                             formattedAmount = `-${formatCurrency(tx.amount)}`;
+                        } else {
+                            formattedAmount = `+${formatCurrency(tx.amount)}`;
+                        }
                         
                         return `
                         <div class="flex justify-between items-center text-sm p-2 rounded-md ${getTxBgColor(tx.type)}">
@@ -498,12 +518,17 @@
                         state.rewardsBitcoinBalance -= txToDelete.amount;
                         break;
                     case 'repayment':
-                        state.defiLoanBalance += txToDelete.amount;
-                        if (txToDelete.description.includes('with Rewards')) {
-                            state.rewardsBalance += txToDelete.amount;
+                        {
+                            let amountToReverse = txToDelete.amount;
+                            state.defiLoanBalance += amountToReverse;
+                             if (txToDelete.description.includes('with Rewards')) {
+                                state.rewardsBalance += amountToReverse;
+                            }
                         }
                         break;
-                    // Intentionally not reversing collateral actions as it's complex
+                    case 'interest':
+                        state.defiInterestAccrued -= txToDelete.amount;
+                        break;
                     case 'collateral_add':
                     case 'collateral_remove':
                         break;
@@ -544,6 +569,15 @@
                 }
             };
 
+            const accrueInterest = () => {
+                if (state.defiLoanBalance <= 0) return;
+                const dailyRate = (state.borrowAPR / 100) / 365;
+                const interest = state.defiLoanBalance * dailyRate;
+                state.defiInterestAccrued += interest;
+                addTransaction('interest', 'Daily Interest Accrued', interest);
+                updateUI();
+            };
+
             // --- EVENT HANDLERS ---
             DOMElements.transactionLog.addEventListener('click', (e) => {
                 if (e.target.classList.contains('delete-tx-btn')) {
@@ -551,6 +585,8 @@
                     deleteTransactionAndReverse(idToDelete);
                 }
             });
+
+            DOMElements.accrueInterestButton.addEventListener('click', accrueInterest);
 
             DOMElements.addPurchaseForm.addEventListener('submit', (e) => {
                 e.preventDefault();
@@ -577,7 +613,7 @@
             DOMElements.payWithDeFiButton.addEventListener('click', () => {
                 const amountToPay = state.ccBalance;
                 if (amountToPay <= 0) return;
-                if (state.defiLoanBalance + amountToPay > state.defiLoanPositionLimit) {
+                if ((state.defiLoanBalance + state.defiInterestAccrued + amountToPay) > state.defiLoanPositionLimit) {
                     alert('This payment exceeds your DeFi loan position limit.');
                     return;
                 }
@@ -598,10 +634,16 @@
             });
 
             DOMElements.repayWithRewardsButton.addEventListener('click', () => {
-                const amountToRepay = Math.min(state.rewardsBalance, state.defiLoanBalance);
+                const totalOwed = state.defiLoanBalance + state.defiInterestAccrued;
+                const amountToRepay = Math.min(state.rewardsBalance, totalOwed);
                 if(amountToRepay <= 0) return;
                 state.rewardsBalance -= amountToRepay;
-                state.defiLoanBalance -= amountToRepay;
+
+                const interestPaid = Math.min(amountToRepay, state.defiInterestAccrued);
+                state.defiInterestAccrued -= interestPaid;
+                const principalPaid = amountToRepay - interestPaid;
+                state.defiLoanBalance -= principalPaid;
+                
                 addTransaction('repayment', 'Loan Repayment with Rewards', amountToRepay);
                 updateUI();
             });
@@ -610,12 +652,20 @@
                 e.preventDefault();
                 const amount = parseFloat(DOMElements.repayAmountInput.value);
                 if (isNaN(amount) || amount <= 0) return;
-                const amountToRepay = Math.min(amount, state.defiLoanBalance);
-                if (amount > state.defiLoanBalance) {
-                    alert(`Repayment amount exceeds loan balance. Repaying ${formatCurrency(amountToRepay)}.`);
+                
+                const totalOwed = state.defiLoanBalance + state.defiInterestAccrued;
+                const amountToRepay = Math.min(amount, totalOwed);
+
+                if (amount > totalOwed) {
+                    alert(`Repayment amount exceeds total owed. Repaying ${formatCurrency(amountToRepay)}.`);
                 }
                 if (amountToRepay <= 0) return;
-                state.defiLoanBalance -= amountToRepay;
+
+                const interestPaid = Math.min(amountToRepay, state.defiInterestAccrued);
+                state.defiInterestAccrued -= interestPaid;
+                const principalPaid = amountToRepay - interestPaid;
+                state.defiLoanBalance -= principalPaid;
+                
                 addTransaction('repayment', 'Loan Repayment from Deposit', amountToRepay);
                 DOMElements.repayAmountInput.value = '';
                 updateUI();
