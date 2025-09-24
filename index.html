@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DeFi & Credit Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -56,6 +57,38 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 0 2.4l-.15.08a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l-.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1 0-2.4l.15-.08a2 2 0 0 0 .73 2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
             </button>
         </header>
+
+        <!-- Overall Summary Card -->
+        <div class="card rounded-xl shadow-lg p-6 mb-6">
+            <div class="flex items-center mb-4">
+                <div class="p-2 bg-gray-500/20 rounded-lg mr-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+                </div>
+                <h2 class="text-xl font-semibold text-white">Overall Financial Summary</h2>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
+                <div>
+                    <p class="text-sm text-gray-400">Total Collateral</p>
+                    <p id="summary-total-collateral" class="text-lg font-bold text-white">$0.00</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-400">Total Loan Principal</p>
+                    <p id="summary-total-principal" class="text-lg font-bold text-red-400">$0.00</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-400">Total Interest</p>
+                    <p id="summary-total-interest" class="text-lg font-bold text-red-500">$0.00</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-400">Total Owed</p>
+                    <p id="summary-total-owed" class="text-lg font-bold text-red-400">$0.00</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-400">Total Rewards Value</p>
+                    <p id="summary-total-rewards" class="text-lg font-bold text-green-400">$0.00</p>
+                </div>
+            </div>
+        </div>
 
         <!-- Dashboard Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -121,7 +154,7 @@
                        <div class="p-2 bg-green-500/20 rounded-lg mr-4">
                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-400"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z"/><path d="M12 8v8"/><path d="m8.5 12.5 7-5"/><path d="m8.5 16.5 7-5"/></svg>
                        </div>
-                    <h2 class="text-xl font-semibold text-white">Financial Actions</h2>
+                    <h2 class="text-xl font-semibold text-white">Actions</h2>
                 </div>
                 <div class="space-y-4">
                     <form id="add-purchase-form" class="space-y-4">
@@ -135,16 +168,34 @@
                         <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">Add Purchase</button>
                     </form>
                     <div class="pt-4 border-t border-gray-700 space-y-2">
-                        <h3 class="text-sm font-medium text-gray-300">Loan Actions</h3>
+                        <label for="action-loan-select" class="block text-sm font-medium text-gray-300">Pay Card from Loan</label>
                         <select id="action-loan-select" class="w-full bg-gray-800 border-gray-600 rounded-md shadow-sm text-sm"></select>
-                        <button id="pay-with-defi" class="w-full bg-purple-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors disabled:bg-gray-500 disabled:cursor-not-allowed mt-2">Pay Card from Selected Loan</button>
-                        <button id="accrue-interest" class="w-full bg-red-800 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-700 transition-colors mt-2">Accrue Interest on Selected Loan</button>
+                        <button id="pay-with-defi" class="w-full bg-purple-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors disabled:bg-gray-500 disabled:cursor-not-allowed mt-2">Pay Card</button>
+                    </div>
+                     <div class="pt-4 border-t border-gray-700">
+                         <button id="advance-day-btn" class="w-full bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors">Advance to Next Day</button>
                     </div>
                 </div>
             </div>
 
             <!-- Dynamic Loan Cards Container -->
             <div id="loan-cards-container" class="contents"></div>
+            
+            <!-- Performance Chart Card -->
+            <div class="card rounded-xl shadow-lg p-6 lg:col-span-4">
+                 <div class="flex justify-between items-center mb-4">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-green-500/20 rounded-lg mr-4">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-400"><path d="M2.5 2v6h6M2.66 15.57a10 10 0 1 0 .57-8.38"/></svg>
+                        </div>
+                        <h2 class="text-xl font-semibold text-white">Portfolio Performance</h2>
+                    </div>
+                    <div id="equity-trend-indicator" class="text-right"></div>
+                 </div>
+                 <div>
+                     <canvas id="performance-chart"></canvas>
+                 </div>
+            </div>
 
             <!-- Loan Actions Card -->
             <div class="card rounded-xl shadow-lg p-6 lg:col-span-2">
@@ -274,7 +325,7 @@
                 addPurchaseForm: document.getElementById('add-purchase-form'),
                 purchaseAmountInput: document.getElementById('purchase-amount'),
                 payWithDeFiButton: document.getElementById('pay-with-defi'),
-                accrueInterestButton: document.getElementById('accrue-interest'),
+                advanceDayButton: document.getElementById('advance-day-btn'),
                 actionLoanSelect: document.getElementById('action-loan-select'),
                 transactionLog: document.getElementById('transaction-log'),
                 settingsButton: document.getElementById('settings-button'),
@@ -303,6 +354,13 @@
                 btcRewardsBalance: document.getElementById('btc-rewards-balance'),
                 btcRewardsRate: document.getElementById('btc-rewards-rate'),
                 loanCardsContainer: document.getElementById('loan-cards-container'),
+                summaryTotalCollateral: document.getElementById('summary-total-collateral'),
+                summaryTotalPrincipal: document.getElementById('summary-total-principal'),
+                summaryTotalInterest: document.getElementById('summary-total-interest'),
+                summaryTotalOwed: document.getElementById('summary-total-owed'),
+                summaryTotalRewards: document.getElementById('summary-total-rewards'),
+                performanceChartCanvas: document.getElementById('performance-chart'),
+                equityTrendIndicator: document.getElementById('equity-trend-indicator'),
             };
 
             // --- APPLICATION STATE ---
@@ -311,36 +369,12 @@
                 ccBalance: 0,
                 loans: [
                     {
-                        id: 1,
-                        name: "Camelot Loan",
-                        principal: 14402.26,
-                        interestAccrued: 0,
-                        positionLimit: 18290.82,
-                        borrowAPR: 15.7,
-                        liquidationThreshold: 80,
-                        collaterals: [{
-                            id: 1695522671235, // Static ID for consistency
-                            assetName: 'GRAIL',
-                            amount: 130.009,
-                            ticker: 'camelot-token',
-                            price: 0
-                        }],
+                        id: 1, name: "Camelot Loan", principal: 14402.26, interestAccrued: 0, positionLimit: 18290.82, borrowAPR: 15.7, liquidationThreshold: 80,
+                        collaterals: [{ id: 1, assetName: 'GRAIL', amount: 130.009, ticker: 'camelot-token', price: 0 }],
                     },
                     {
-                        id: 2,
-                        name: "Plume Loan",
-                        principal: 0,
-                        interestAccrued: 0,
-                        positionLimit: 10000,
-                        borrowAPR: 10.5,
-                        liquidationThreshold: 75,
-                        collaterals: [{
-                            id: 1695522671236, // Static ID for consistency
-                            assetName: 'Plume',
-                            amount: 119000,
-                            ticker: 'ethereum', // CORRECTED TICKER
-                            price: 0
-                        }],
+                        id: 2, name: "Plume Loan", principal: 0, interestAccrued: 0, positionLimit: 10000, borrowAPR: 10.5, liquidationThreshold: 75,
+                        collaterals: [{ id: 2, assetName: 'Plume', amount: 119000, ticker: 'ethereum', price: 0 }],
                     }
                 ],
                 transactions: [],
@@ -349,7 +383,10 @@
                 rewardsBitcoinBalance: 0,
                 rewardsBitcoinPercentage: 2,
                 bitcoinPrice: 0,
+                dailySnapshots: [],
             };
+
+            let performanceChart = null;
 
             // --- UTILITY FUNCTIONS ---
             const formatCurrency = (amount) => `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -360,10 +397,10 @@
                 const savedState = localStorage.getItem('defiCreditDashboardState');
                 if (savedState) {
                     let loaded = JSON.parse(savedState);
-                    if (typeof loaded.totalGrailRewardsEarned === 'undefined') {
+                     if (typeof loaded.totalGrailRewardsEarned === 'undefined') {
                         loaded.totalGrailRewardsEarned = loaded.transactions ? loaded.transactions.filter(tx => tx.type === 'reward').reduce((sum, tx) => sum + tx.amount, 0) : 0;
                     }
-                    state = { ...state, ...loaded };
+                    state = { ...state, ...loaded, dailySnapshots: loaded.dailySnapshots || [] };
                 }
             };
             
@@ -382,19 +419,41 @@
             };
             
             const updateUI = () => {
+                // Credit Card
                 const ccAvailable = state.ccLimit - state.ccBalance;
                 const ccUsagePercent = (state.ccLimit > 0 ? state.ccBalance / state.ccLimit : 0) * 100;
-                
                 DOMElements.ccLimit.textContent = formatCurrency(state.ccLimit);
                 DOMElements.ccBalance.textContent = formatCurrency(state.ccBalance);
                 DOMElements.ccAvailable.textContent = formatCurrency(ccAvailable);
                 DOMElements.ccProgress.style.width = `${ccUsagePercent}%`;
                 
+                // Rewards
                 DOMElements.rewardsBalance.textContent = formatCurrency(state.rewardsBalance);
                 DOMElements.totalRewardsEarned.textContent = formatCurrency(state.totalGrailRewardsEarned);
                 DOMElements.btcRewardsBalance.textContent = formatBTC(state.rewardsBitcoinBalance);
                 DOMElements.btcRewardsRate.textContent = `${state.rewardsBitcoinPercentage}%`;
                 
+                // Summary Calculations
+                const summary = state.loans.reduce((acc, loan) => {
+                    const totalCollateralValue = loan.collaterals.reduce((total, c) => total + (c.amount * c.price), 0);
+                    acc.totalCollateral += totalCollateralValue;
+                    acc.totalPrincipal += loan.principal;
+                    acc.totalInterest += loan.interestAccrued;
+                    return acc;
+                }, { totalCollateral: 0, totalPrincipal: 0, totalInterest: 0 });
+
+                const summaryTotalOwed = summary.totalPrincipal + summary.totalInterest;
+                const totalBtcValue = state.rewardsBitcoinBalance * state.bitcoinPrice;
+                const totalRewardsValue = state.rewardsBalance + totalBtcValue;
+
+                // Update Summary Card
+                DOMElements.summaryTotalCollateral.textContent = formatCurrency(summary.totalCollateral);
+                DOMElements.summaryTotalPrincipal.textContent = formatCurrency(summary.totalPrincipal);
+                DOMElements.summaryTotalInterest.textContent = formatCurrency(summary.totalInterest);
+                DOMElements.summaryTotalOwed.textContent = formatCurrency(summaryTotalOwed);
+                DOMElements.summaryTotalRewards.textContent = formatCurrency(totalRewardsValue);
+
+                // Loan Cards
                 DOMElements.loanCardsContainer.innerHTML = '';
                 state.loans.forEach(loan => {
                     const loanCard = createLoanCard(loan);
@@ -402,7 +461,8 @@
                 });
 
                 DOMElements.payWithDeFiButton.disabled = state.ccBalance <= 0;
-
+                
+                renderPerformanceChart();
                 updateLoanSelects();
                 renderTransactions();
                 saveState();
@@ -483,6 +543,57 @@
                 }).join('');
             };
             
+             const renderPerformanceChart = () => {
+                const ctx = DOMElements.performanceChartCanvas.getContext('2d');
+                const snapshots = state.dailySnapshots;
+                
+                let trendHtml = '<p class="text-sm text-gray-400">No trend data yet.</p>';
+
+                if (snapshots.length >= 2) {
+                    const last = snapshots[snapshots.length - 1].netEquity;
+                    const secondLast = snapshots[snapshots.length - 2].netEquity;
+                    const change = last - secondLast;
+                    if (change > 0) {
+                        trendHtml = `<p class="text-sm text-green-400">Equity is Up <span class="font-bold">${formatCurrency(change)}</span></p><p class="text-xs text-gray-400">in the last day</p>`;
+                    } else {
+                        trendHtml = `<p class="text-sm text-red-400">Equity is Down <span class="font-bold">${formatCurrency(change)}</span></p><p class="text-xs text-gray-400">in the last day</p>`;
+                    }
+                }
+                DOMElements.equityTrendIndicator.innerHTML = trendHtml;
+
+
+                const labels = snapshots.map(s => new Date(s.date).toLocaleDateString());
+                const data = snapshots.map(s => s.netEquity);
+
+                if (performanceChart) {
+                    performanceChart.destroy();
+                }
+
+                performanceChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Net Equity',
+                            data: data,
+                            borderColor: 'rgb(59, 130, 246)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                            tension: 0.1,
+                            fill: true,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                             y: { ticks: { color: '#9ca3af' } },
+                             x: { ticks: { color: '#9ca3af' } }
+                        }
+                    }
+                });
+            };
+
+
             // --- CORE LOGIC FUNCTIONS ---
             const addTransaction = (type, description, amount, meta = {}) => {
                  state.transactions.unshift({id: Date.now(), date: new Date().toISOString(), type, description, amount, ...meta});
@@ -498,37 +609,23 @@
                 const loan = state.loans.find(l => l.id === loanId);
 
                 switch (type) {
-                    case 'purchase':
-                        state.ccBalance -= amount;
-                        break;
-                    case 'payment':
-                        if (loan) loan.principal -= amount;
-                        state.ccBalance += amount;
-                        break;
-                    case 'reward':
-                        state.rewardsBalance -= amount;
-                        state.totalGrailRewardsEarned -= amount;
-                        break;
-                    case 'reward_btc':
-                        state.rewardsBitcoinBalance -= amount;
-                        break;
+                    case 'purchase': state.ccBalance -= amount; break;
+                    case 'payment': if (loan) loan.principal -= amount; state.ccBalance += amount; break;
+                    case 'reward': state.rewardsBalance -= amount; state.totalGrailRewardsEarned -= amount; break;
+                    case 'reward_btc': state.rewardsBitcoinBalance -= amount; break;
                     case 'repayment':
                         if (loan) {
-                            loan.principal += amount; // Simplified reversal: adds back to principal
-                            if (txToDelete.description.includes('with rewards')) {
-                                state.rewardsBalance += amount;
-                            }
+                            loan.principal += amount; 
+                            if (txToDelete.description.includes('with rewards')) state.rewardsBalance += amount;
                         }
                         break;
-                    case 'interest':
-                        if (loan) loan.interestAccrued -= amount;
-                        break;
+                    case 'interest': if (loan) loan.interestAccrued -= amount; break;
                     case 'loan_transfer':
                         const sourceLoan = state.loans.find(l => l.id === sourceLoanId);
                         const targetLoan = state.loans.find(l => l.id === targetLoanId);
                         if (sourceLoan && targetLoan) {
                             sourceLoan.principal -= amount;
-                            targetLoan.principal += amount; // Simplified reversal
+                            targetLoan.principal += amount;
                         }
                         break;
                     case 'collateral_add':
@@ -536,20 +633,15 @@
                             const collateral = loan.collaterals.find(c => c.ticker === ticker);
                             if (collateral) {
                                 collateral.amount -= amount;
-                                if (collateral.amount < 0.000001) {
-                                    loan.collaterals = loan.collaterals.filter(c => c.ticker !== ticker);
-                                }
+                                if (collateral.amount < 0.000001) loan.collaterals = loan.collaterals.filter(c => c.ticker !== ticker);
                             }
                         }
                         break;
                     case 'collateral_remove':
                          if (loan && ticker) {
                             const collateral = loan.collaterals.find(c => c.ticker === ticker);
-                            if (collateral) {
-                                collateral.amount += amount;
-                            } else {
-                                loan.collaterals.push({ id: Date.now(), assetName, amount, ticker, price: 0 });
-                            }
+                            if (collateral) collateral.amount += amount;
+                            else loan.collaterals.push({ id: Date.now(), assetName, amount, ticker, price: 0 });
                         }
                         break;
                 }
@@ -560,7 +652,7 @@
                 const allCollaterals = state.loans.flatMap(l => l.collaterals);
                 let tickers = ['bitcoin', ...new Set(allCollaterals.map(c => c.ticker))];
                 const uniqueTickers = [...new Set(tickers)].join(',');
-                if (!uniqueTickers) { updateUI(); return; }
+                if (!uniqueTickers) { updateUI(); return Promise.resolve(); }
                 try {
                     const apiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${uniqueTickers}&vs_currencies=usd`;
                     const response = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`);
@@ -572,8 +664,37 @@
                             if (data[c.ticker] && data[c.ticker].usd) c.price = data[c.ticker].usd;
                         });
                     });
-                } catch (error) { console.error('Failed to fetch crypto price:', error); } 
-                finally { updateUI(); }
+                } catch (error) { 
+                    console.error('Failed to fetch crypto price:', error); 
+                } finally {
+                    return Promise.resolve();
+                }
+            };
+
+            const advanceDay = async () => {
+                state.loans.forEach(loan => {
+                     if (!loan || loan.principal <= 0) return;
+                    const dailyRate = (loan.borrowAPR / 100) / 365;
+                    const interest = loan.principal * dailyRate;
+                    loan.interestAccrued += interest;
+                    addTransaction('interest', `Interest on ${loan.name}`, interest, { loanId: loan.id });
+                });
+
+                await fetchCryptoPrice();
+
+                const totalCollateral = state.loans.reduce((sum, loan) => sum + loan.collaterals.reduce((total, c) => total + (c.amount * c.price), 0), 0);
+                const totalOwed = state.loans.reduce((sum, loan) => sum + loan.principal + loan.interestAccrued, 0);
+                
+                state.dailySnapshots.push({
+                    date: new Date().toISOString(),
+                    totalCollateral: totalCollateral,
+                    totalOwed: totalOwed,
+                    netEquity: totalCollateral - totalOwed,
+                });
+
+                if(state.dailySnapshots.length > 30) state.dailySnapshots.shift();
+
+                updateUI();
             };
 
             // --- EVENT HANDLERS ---
@@ -583,6 +704,8 @@
                     deleteTransactionAndReverse(idToDelete);
                 }
             });
+
+            DOMElements.advanceDayButton.addEventListener('click', advanceDay);
 
             DOMElements.addPurchaseForm.addEventListener('submit', (e) => {
                 e.preventDefault();
@@ -610,17 +733,6 @@
                 loan.principal += amountToPay;
                 state.ccBalance = 0;
                 addTransaction('payment', `Card payoff from ${loan.name}`, amountToPay, { loanId });
-                updateUI();
-            });
-
-            DOMElements.accrueInterestButton.addEventListener('click', () => {
-                const loanId = parseInt(DOMElements.actionLoanSelect.value);
-                const loan = state.loans.find(l => l.id === loanId);
-                if (!loan || loan.principal <= 0) return;
-                const dailyRate = (loan.borrowAPR / 100) / 365;
-                const interest = loan.principal * dailyRate;
-                loan.interestAccrued += interest;
-                addTransaction('interest', `Interest on ${loan.name}`, interest, { loanId });
                 updateUI();
             });
 
@@ -729,7 +841,7 @@
                 }
 
                 DOMElements.addCollateralForm.reset();
-                fetchCryptoPrice();
+                fetchCryptoPrice().then(updateUI);
             });
 
             DOMElements.loanCardsContainer.addEventListener('click', (e) => {
@@ -747,7 +859,7 @@
                         });
                     }
                     loan.collaterals = loan.collaterals.filter(c => c.id !== collateralId);
-                    fetchCryptoPrice();
+                    fetchCryptoPrice().then(updateUI);
                 }
             });
             
@@ -795,8 +907,8 @@
 
             // --- INITIALIZATION ---
             loadState();
-            fetchCryptoPrice();
-            setInterval(fetchCryptoPrice, 60000);
+            fetchCryptoPrice().then(updateUI);
+            setInterval(() => fetchCryptoPrice().then(updateUI), 60000);
         });
     </script>
 </body>
