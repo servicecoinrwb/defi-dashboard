@@ -136,7 +136,7 @@
                 <div class="flex items-center mb-4">
                      <div class="p-2 bg-teal-500/20 rounded-lg mr-4">
                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-400"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-                       </div>
+                      </div>
                     <h2 class="text-xl font-semibold text-white">Grail Rewards</h2>
                 </div>
                 <div class="space-y-3 text-sm">
@@ -170,9 +170,9 @@
 
             <div class="card rounded-xl shadow-lg p-6">
                  <div class="flex items-center mb-4">
-                       <div class="p-2 bg-green-500/20 rounded-lg mr-4">
-                           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-400"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z"/><path d="M12 8v8"/><path d="m8.5 12.5 7-5"/><path d="m8.5 16.5 7-5"/></svg>
-                       </div>
+                      <div class="p-2 bg-green-500/20 rounded-lg mr-4">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-400"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z"/><path d="M12 8v8"/><path d="m8.5 12.5 7-5"/><path d="m8.5 16.5 7-5"/></svg>
+                      </div>
                     <h2 class="text-xl font-semibold text-white">Actions</h2>
                 </div>
                 <div class="space-y-4">
@@ -193,7 +193,7 @@
                     </div>
                      <div class="pt-4 border-t border-gray-700">
                          <button id="advance-day-btn" class="w-full bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors">Advance to Next Day</button>
-                    </div>
+                     </div>
                 </div>
             </div>
 
@@ -201,11 +201,30 @@
             <div id="loan-cards-container" class="contents"></div>
             
             <!-- Loan Actions Card -->
-            <div class="card rounded-xl shadow-lg p-6 lg:col-span-2">
+            <div class="card rounded-xl shadow-lg p-6 lg:col-span-4">
                  <div class="flex items-center mb-4">
                      <h2 class="text-xl font-semibold text-white">Loan Management</h2>
                  </div>
-                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- NEW: Borrow Form -->
+                    <div>
+                        <form id="borrow-form" class="space-y-4">
+                            <h3 class="text-md font-semibold text-white -mb-2">Borrow</h3>
+                            <div>
+                                <label for="borrow-loan-select" class="block text-sm font-medium text-gray-300">From Loan</label>
+                                <select id="borrow-loan-select" class="mt-1 w-full bg-gray-800 border-gray-600 rounded-md shadow-sm"></select>
+                            </div>
+                            <div>
+                                <label for="borrow-amount" class="block text-sm font-medium text-gray-300">Borrow Amount</label>
+                                <div class="mt-1 flex rounded-md shadow-sm">
+                                    <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-600 bg-gray-700 text-gray-400 sm:text-sm">$</span>
+                                    <input type="number" id="borrow-amount" class="flex-1 block w-full rounded-none rounded-r-md bg-gray-800 border-gray-600 focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="2000.00" step="0.01" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">Borrow Funds</button>
+                        </form>
+                    </div>
+                    <!-- Repay Loan Form -->
                     <div>
                         <form id="repay-loan-form" class="space-y-4">
                             <h3 class="text-md font-semibold text-white -mb-2">Repay Loan</h3>
@@ -224,6 +243,7 @@
                              <button id="repay-with-rewards-btn" type="button" class="w-full bg-teal-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-teal-700 transition-colors">Repay with Grail Rewards</button>
                         </form>
                     </div>
+                    <!-- Inter-Loan Repayment Form -->
                     <div>
                         <form id="inter-loan-repay-form" class="space-y-4">
                             <h3 class="text-md font-semibold text-white -mb-2">Inter-Loan Payment</h3>
@@ -275,7 +295,7 @@
             </div>
 
             <!-- Card: Transaction Log -->
-            <div class="card rounded-xl shadow-lg p-6 lg:col-span-4">
+            <div class="card rounded-xl shadow-lg p-6 lg:col-span-2">
                 <h2 class="text-xl font-semibold text-white mb-4">Transaction Log</h2>
                 <div id="transaction-log" class="h-64 overflow-y-auto space-y-3 pr-2">
                      <p class="text-gray-500 text-center pt-8">No transactions yet.</p>
@@ -367,6 +387,10 @@
                 performanceChartHeader: document.getElementById('performance-chart-header'),
                 performanceChartContainer: document.getElementById('performance-chart-container'),
                 chartToggleIcon: document.getElementById('chart-toggle-icon'),
+                // New Borrow Form Elements
+                borrowForm: document.getElementById('borrow-form'),
+                borrowLoanSelect: document.getElementById('borrow-loan-select'),
+                borrowAmountInput: document.getElementById('borrow-amount'),
             };
 
             // --- APPLICATION STATE ---
@@ -404,7 +428,7 @@
                 if (savedState) {
                     let loaded = JSON.parse(savedState);
                      if (typeof loaded.totalGrailRewardsEarned === 'undefined') {
-                        loaded.totalGrailRewardsEarned = loaded.transactions ? loaded.transactions.filter(tx => tx.type === 'reward').reduce((sum, tx) => sum + tx.amount, 0) : 0;
+                         loaded.totalGrailRewardsEarned = loaded.transactions ? loaded.transactions.filter(tx => tx.type === 'reward').reduce((sum, tx) => sum + tx.amount, 0) : 0;
                     }
                     state = { ...state, ...loaded, dailySnapshots: loaded.dailySnapshots || [] };
                 }
@@ -422,6 +446,7 @@
                 DOMElements.repaySourceLoanSelect.innerHTML = options;
                 DOMElements.repayTargetLoanSelect.innerHTML = options;
                 DOMElements.collateralLoanSelect.innerHTML = options;
+                DOMElements.borrowLoanSelect.innerHTML = options; // New
             };
             
             const updateUI = () => {
@@ -530,7 +555,7 @@
                      return;
                 }
                 DOMElements.transactionLog.innerHTML = state.transactions.map(tx => {
-                    const getTxBgColor = (type) => ({'purchase':'bg-gray-800','payment':'bg-purple-900/50','reward':'bg-teal-900/50','reward_btc':'bg-yellow-900/50','repayment':'bg-green-900/50','collateral_add':'bg-orange-900/50','collateral_remove':'bg-red-900/50','interest':'bg-red-900/50','loan_transfer':'bg-indigo-900/50'}[type] || 'bg-gray-800');
+                    const getTxBgColor = (type) => ({'purchase':'bg-gray-800','payment':'bg-purple-900/50','reward':'bg-teal-900/50','reward_btc':'bg-yellow-900/50','repayment':'bg-green-900/50','collateral_add':'bg-orange-900/50','collateral_remove':'bg-red-900/50','interest':'bg-red-900/50','loan_transfer':'bg-indigo-900/50', 'borrow': 'bg-blue-900/50'}[type] || 'bg-gray-800');
                     const getTxAmountColor = (type) => (['purchase','collateral_remove','interest'].includes(type) ? 'text-red-400' : 'text-green-400');
                     const isBtcTx = tx.type === 'reward_btc';
                     let formattedAmount = isBtcTx ? `+${formatBTC(tx.amount)}` : (getTxAmountColor(tx.type) === 'text-red-400' ? `-${formatCurrency(tx.amount)}` : `+${formatCurrency(tx.amount)}`);
@@ -619,6 +644,7 @@
                 switch (type) {
                     case 'purchase': state.ccBalance -= amount; break;
                     case 'payment': if (loan) loan.principal -= amount; state.ccBalance += amount; break;
+                    case 'borrow': if (loan) loan.principal -= amount; break; // New
                     case 'reward': state.rewardsBalance -= amount; state.totalGrailRewardsEarned -= amount; break;
                     case 'reward_btc': state.rewardsBitcoinBalance -= amount; break;
                     case 'repayment':
@@ -663,7 +689,7 @@
                 if (!uniqueTickers) { updateUI(); return Promise.resolve(); }
                 try {
                     const apiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${uniqueTickers}&vs_currencies=usd`;
-                    const response = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`);
+                    const response = await fetch(`https://corsproxy.io/?${encodeURIComponent(apiUrl)}`);
                     if (!response.ok) throw new Error('Network response was not ok');
                     const data = await response.json();
                     if(data.bitcoin && data.bitcoin.usd) state.bitcoinPrice = data.bitcoin.usd;
@@ -757,6 +783,28 @@
                 state.totalGrailRewardsEarned += amount;
                 addTransaction('reward', 'Grail Rewards Claimed', amount);
                 DOMElements.rewardsAmountInput.value = '';
+                updateUI();
+            });
+
+            // --- NEW BORROW FORM HANDLER ---
+            DOMElements.borrowForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const loanId = parseInt(DOMElements.borrowLoanSelect.value);
+                const loan = state.loans.find(l => l.id === loanId);
+                const amount = parseFloat(DOMElements.borrowAmountInput.value);
+
+                if (!loan || isNaN(amount) || amount <= 0) {
+                    return alert('Invalid loan or amount.');
+                }
+
+                const currentTotalOwed = loan.principal + loan.interestAccrued;
+                if (currentTotalOwed + amount > loan.positionLimit) {
+                    return alert(`This action exceeds the position limit for ${loan.name}.`);
+                }
+
+                loan.principal += amount;
+                addTransaction('borrow', `Borrowed from ${loan.name}`, amount, { loanId });
+                DOMElements.borrowAmountInput.value = '';
                 updateUI();
             });
 
