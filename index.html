@@ -112,6 +112,41 @@
                  </div>
             </div>
 
+            <!-- Savings Vault Card -->
+            <div class="card rounded-xl shadow-lg p-6 lg:col-span-2">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <div class="flex items-center">
+                            <div class="p-2 bg-cyan-500/20 rounded-lg mr-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-cyan-400"><path d="M20 12V8H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4Z"/><path d="M4 6v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6"/><path d="M12 12v4h4"/></svg>
+                            </div>
+                            <div>
+                                <h2 class="text-xl font-semibold text-white">Savings Vault</h2>
+                                <p class="text-sm text-cyan-400 font-bold">APY: <span id="savings-apy">0.00</span>%</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button id="withdraw-savings-btn" class="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors text-sm">Withdraw</button>
+                        <button id="deposit-savings-btn" class="bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors text-sm">Deposit</button>
+                    </div>
+                </div>
+                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center border-t border-gray-700 pt-4">
+                    <div>
+                        <p class="text-sm text-gray-400">Your Balance</p>
+                        <p id="savings-balance" class="text-lg font-bold text-white">$0.00</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-400">Monthly Earnings</p>
+                        <p id="savings-monthly-earnings" class="text-lg font-bold text-green-400">$0.00</p>
+                    </div>
+                     <div>
+                        <p class="text-sm text-gray-400">Rewards Earned</p>
+                        <p id="savings-rewards" class="text-lg font-bold text-green-400">$0.00</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- Static Cards -->
             <div class="card rounded-xl shadow-lg p-6">
                 <div class="flex items-center mb-4">
@@ -143,16 +178,19 @@
                     <div class="flex justify-between"><span>USDC.e Balance:</span> <span id="rewards-balance" class="font-medium text-white">$0.00</span></div>
                     <div class="flex justify-between"><span>Total Earned:</span> <span id="total-rewards-earned" class="font-medium text-gray-400">$0.00</span></div>
                 </div>
-                <form id="claim-rewards-form" class="mt-4 pt-4 border-t border-gray-700 space-y-4">
-                    <div>
-                        <label for="rewards-amount" class="block text-sm font-medium text-gray-300">Claim New Rewards</label>
-                        <div class="mt-1 flex rounded-md shadow-sm">
-                            <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-600 bg-gray-700 text-gray-400 sm:text-sm">$</span>
-                            <input type="number" id="rewards-amount" class="flex-1 block w-full rounded-none rounded-r-md bg-gray-800 border-gray-600 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="50.25" step="0.01" required>
+                <div class="mt-4 pt-4 border-t border-gray-700 space-y-4">
+                    <form id="claim-rewards-form" class="space-y-4">
+                        <div>
+                            <label for="rewards-amount" class="block text-sm font-medium text-gray-300">Claim New Rewards</label>
+                            <div class="mt-1 flex rounded-md shadow-sm">
+                                <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-600 bg-gray-700 text-gray-400 sm:text-sm">$</span>
+                                <input type="number" id="rewards-amount" class="flex-1 block w-full rounded-none rounded-r-md bg-gray-800 border-gray-600 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="50.25" step="0.01" required>
+                            </div>
                         </div>
-                    </div>
-                    <button type="submit" class="w-full bg-teal-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-teal-700 transition-colors">Claim Rewards</button>
-                </form>
+                        <button type="submit" class="w-full bg-teal-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-teal-700 transition-colors">Claim Rewards</button>
+                    </form>
+                    <button type="button" id="deposit-rewards-to-savings-btn" class="w-full bg-cyan-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-cyan-700 transition-colors">Deposit to Savings</button>
+                </div>
             </div>
             
             <div class="card rounded-xl shadow-lg p-6">
@@ -323,6 +361,13 @@
                     <input type="number" id="setting-btc-rewards" step="any" class="mt-1 w-full bg-gray-800 border-gray-600 rounded-md shadow-sm" required>
                 </div>
                 <div class="pt-4 border-t border-gray-700">
+                     <h3 class="text-lg font-semibold text-white">Savings Vault Settings</h3>
+                     <div class="mt-2">
+                         <label for="setting-savings-apy" class="block text-sm font-medium text-gray-300">Savings APY (%)</label>
+                         <input type="number" id="setting-savings-apy" step="any" class="mt-1 w-full bg-gray-800 border-gray-600 rounded-md shadow-sm" required>
+                     </div>
+                </div>
+                <div class="pt-4 border-t border-gray-700">
                     <h3 class="text-lg font-semibold text-white">Loan Settings</h3>
                     <div class="space-y-2 mt-2" id="loan-settings-container">
                         <!-- Loan settings will be dynamically inserted here -->
@@ -331,6 +376,26 @@
                 <div class="pt-4 flex justify-end space-x-3">
                     <button type="button" id="cancel-settings" class="px-4 py-2 rounded-lg bg-gray-600 hover:bg-gray-500 transition-colors">Cancel</button>
                     <button type="submit" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 transition-colors text-white font-semibold">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Savings Modal -->
+    <div id="savings-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50 hidden">
+        <div class="card w-full max-w-md p-6 rounded-xl shadow-2xl">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="savings-modal-title" class="text-2xl font-bold text-white">Deposit to Vault</h2>
+                <button id="close-savings-modal-button" class="text-gray-400 hover:text-white">&times;</button>
+            </div>
+            <form id="savings-form" class="space-y-4">
+                 <div>
+                    <label for="savings-amount" class="block text-sm font-medium text-gray-300">Amount ($)</label>
+                    <input type="number" id="savings-amount" class="mt-1 w-full bg-gray-800 border-gray-600 rounded-md shadow-sm" step="any" required>
+                </div>
+                <div class="pt-4 flex justify-end space-x-3">
+                    <button type="button" id="cancel-savings" class="px-4 py-2 rounded-lg bg-gray-600 hover:bg-gray-500 transition-colors">Cancel</button>
+                    <button type="submit" id="savings-submit-btn" class="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors text-white font-semibold">Deposit</button>
                 </div>
             </form>
         </div>
@@ -387,10 +452,24 @@
                 performanceChartHeader: document.getElementById('performance-chart-header'),
                 performanceChartContainer: document.getElementById('performance-chart-container'),
                 chartToggleIcon: document.getElementById('chart-toggle-icon'),
-                // New Borrow Form Elements
                 borrowForm: document.getElementById('borrow-form'),
                 borrowLoanSelect: document.getElementById('borrow-loan-select'),
                 borrowAmountInput: document.getElementById('borrow-amount'),
+                savingsApy: document.getElementById('savings-apy'),
+                savingsBalance: document.getElementById('savings-balance'),
+                savingsMonthlyEarnings: document.getElementById('savings-monthly-earnings'),
+                savingsRewards: document.getElementById('savings-rewards'),
+                depositSavingsBtn: document.getElementById('deposit-savings-btn'),
+                withdrawSavingsBtn: document.getElementById('withdraw-savings-btn'),
+                savingsModal: document.getElementById('savings-modal'),
+                closeSavingsModalButton: document.getElementById('close-savings-modal-button'),
+                savingsForm: document.getElementById('savings-form'),
+                savingsModalTitle: document.getElementById('savings-modal-title'),
+                savingsAmountInput: document.getElementById('savings-amount'),
+                cancelSavingsBtn: document.getElementById('cancel-savings'),
+                savingsSubmitBtn: document.getElementById('savings-submit-btn'),
+                depositRewardsToSavingsBtn: document.getElementById('deposit-rewards-to-savings-btn'),
+                settingSavingsApy: document.getElementById('setting-savings-apy'),
             };
 
             // --- APPLICATION STATE ---
@@ -407,6 +486,11 @@
                         collaterals: [{ id: 2, assetName: 'Plume', amount: 119000, ticker: 'ethereum', price: 0 }],
                     }
                 ],
+                savingsVault: {
+                    balance: 315.41,
+                    apy: 26.7,
+                    rewards: 0.24,
+                },
                 transactions: [],
                 rewardsBalance: 0,
                 totalGrailRewardsEarned: 0,
@@ -417,6 +501,8 @@
             };
 
             let performanceChart = null;
+            let savingsModalMode = 'deposit'; // 'deposit' or 'withdraw'
+
 
             // --- UTILITY FUNCTIONS ---
             const formatCurrency = (amount) => `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -446,7 +532,7 @@
                 DOMElements.repaySourceLoanSelect.innerHTML = options;
                 DOMElements.repayTargetLoanSelect.innerHTML = options;
                 DOMElements.collateralLoanSelect.innerHTML = options;
-                DOMElements.borrowLoanSelect.innerHTML = options; // New
+                DOMElements.borrowLoanSelect.innerHTML = options;
             };
             
             const updateUI = () => {
@@ -463,6 +549,13 @@
                 DOMElements.totalRewardsEarned.textContent = formatCurrency(state.totalGrailRewardsEarned);
                 DOMElements.btcRewardsBalance.textContent = formatBTC(state.rewardsBitcoinBalance);
                 DOMElements.btcRewardsRate.textContent = `${state.rewardsBitcoinPercentage}%`;
+
+                // Savings Vault
+                const monthlyEarnings = (state.savingsVault.balance * (state.savingsVault.apy / 100)) / 12;
+                DOMElements.savingsApy.textContent = state.savingsVault.apy.toFixed(2);
+                DOMElements.savingsBalance.textContent = formatCurrency(state.savingsVault.balance);
+                DOMElements.savingsMonthlyEarnings.textContent = formatCurrency(monthlyEarnings);
+                DOMElements.savingsRewards.textContent = state.savingsVault.rewards.toFixed(2);
                 
                 // Summary Calculations
                 const summary = state.loans.reduce((acc, loan) => {
@@ -478,7 +571,7 @@
                 const totalRewardsValue = state.rewardsBalance + totalBtcValue;
 
                 // Update Summary Card
-                DOMElements.summaryTotalCollateral.textContent = formatCurrency(summary.totalCollateral);
+                DOMElements.summaryTotalCollateral.textContent = formatCurrency(summary.totalCollateral + state.savingsVault.balance);
                 DOMElements.summaryTotalPrincipal.textContent = formatCurrency(summary.totalPrincipal);
                 DOMElements.summaryTotalInterest.textContent = formatCurrency(summary.totalInterest);
                 DOMElements.summaryTotalOwed.textContent = formatCurrency(summaryTotalOwed);
@@ -555,8 +648,8 @@
                      return;
                 }
                 DOMElements.transactionLog.innerHTML = state.transactions.map(tx => {
-                    const getTxBgColor = (type) => ({'purchase':'bg-gray-800','payment':'bg-purple-900/50','reward':'bg-teal-900/50','reward_btc':'bg-yellow-900/50','repayment':'bg-green-900/50','collateral_add':'bg-orange-900/50','collateral_remove':'bg-red-900/50','interest':'bg-red-900/50','loan_transfer':'bg-indigo-900/50', 'borrow': 'bg-blue-900/50'}[type] || 'bg-gray-800');
-                    const getTxAmountColor = (type) => (['purchase','collateral_remove','interest'].includes(type) ? 'text-red-400' : 'text-green-400');
+                    const getTxBgColor = (type) => ({'purchase':'bg-gray-800','payment':'bg-purple-900/50','reward':'bg-teal-900/50','reward_btc':'bg-yellow-900/50','repayment':'bg-green-900/50','collateral_add':'bg-orange-900/50','collateral_remove':'bg-red-900/50','interest':'bg-red-900/50','loan_transfer':'bg-indigo-900/50', 'borrow': 'bg-blue-900/50', 'savings_deposit': 'bg-cyan-900/50', 'savings_withdrawal': 'bg-pink-900/50'}[type] || 'bg-gray-800');
+                    const getTxAmountColor = (type) => (['purchase','collateral_remove','interest', 'savings_withdrawal'].includes(type) ? 'text-red-400' : 'text-green-400');
                     const isBtcTx = tx.type === 'reward_btc';
                     let formattedAmount = isBtcTx ? `+${formatBTC(tx.amount)}` : (getTxAmountColor(tx.type) === 'text-red-400' ? `-${formatCurrency(tx.amount)}` : `+${formatCurrency(tx.amount)}`);
                     if(tx.type === 'loan_transfer') formattedAmount = formatCurrency(tx.amount);
@@ -644,7 +737,7 @@
                 switch (type) {
                     case 'purchase': state.ccBalance -= amount; break;
                     case 'payment': if (loan) loan.principal -= amount; state.ccBalance += amount; break;
-                    case 'borrow': if (loan) loan.principal -= amount; break; // New
+                    case 'borrow': if (loan) loan.principal -= amount; break;
                     case 'reward': state.rewardsBalance -= amount; state.totalGrailRewardsEarned -= amount; break;
                     case 'reward_btc': state.rewardsBitcoinBalance -= amount; break;
                     case 'repayment':
@@ -678,6 +771,8 @@
                             else loan.collaterals.push({ id: Date.now(), assetName, amount, ticker, price: 0 });
                         }
                         break;
+                    case 'savings_deposit': state.savingsVault.balance -= amount; break;
+                    case 'savings_withdrawal': state.savingsVault.balance += amount; break;
                 }
                 updateUI();
             };
@@ -714,9 +809,15 @@
                     addTransaction('interest', `Interest on ${loan.name}`, interest, { loanId: loan.id });
                 });
 
+                // Accrue savings interest
+                const dailySavingsRate = (state.savingsVault.apy / 100) / 365;
+                const savingsInterest = state.savingsVault.balance * dailySavingsRate;
+                state.savingsVault.balance += savingsInterest;
+                // Maybe add a transaction for this later if desired
+
                 await fetchCryptoPrice();
 
-                const totalCollateral = state.loans.reduce((sum, loan) => sum + loan.collaterals.reduce((total, c) => total + (c.amount * c.price), 0), 0);
+                const totalCollateral = state.loans.reduce((sum, loan) => sum + loan.collaterals.reduce((total, c) => total + (c.amount * c.price), 0), 0) + state.savingsVault.balance;
                 const totalOwed = state.loans.reduce((sum, loan) => sum + loan.principal + loan.interestAccrued, 0);
                 
                 state.dailySnapshots.push({
@@ -786,7 +887,18 @@
                 updateUI();
             });
 
-            // --- NEW BORROW FORM HANDLER ---
+            DOMElements.depositRewardsToSavingsBtn.addEventListener('click', () => {
+                const amountToDeposit = state.rewardsBalance;
+                if (amountToDeposit <= 0) {
+                    alert('No Grail Rewards balance to deposit.');
+                    return;
+                }
+                state.savingsVault.balance += amountToDeposit;
+                state.rewardsBalance = 0;
+                addTransaction('savings_deposit', 'Deposited Grail Rewards to Savings', amountToDeposit);
+                updateUI();
+            });
+            
             DOMElements.borrowForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const loanId = parseInt(DOMElements.borrowLoanSelect.value);
@@ -928,6 +1040,8 @@
             const openModal = () => {
                 document.getElementById('setting-cc-limit').value = state.ccLimit;
                 document.getElementById('setting-btc-rewards').value = state.rewardsBitcoinPercentage;
+                DOMElements.settingSavingsApy.value = state.savingsVault.apy;
+
                 DOMElements.loanSettingsContainer.innerHTML = '';
                 state.loans.forEach(loan => {
                     const loanSettingsEl = document.createElement('div');
@@ -956,6 +1070,8 @@
                 e.preventDefault();
                 state.ccLimit = parseFloat(document.getElementById('setting-cc-limit').value);
                 state.rewardsBitcoinPercentage = parseFloat(document.getElementById('setting-btc-rewards').value);
+                state.savingsVault.apy = parseFloat(DOMElements.settingSavingsApy.value);
+                
                 DOMElements.loanSettingsContainer.querySelectorAll('input[data-loan-id]').forEach(input => {
                     const loanId = parseInt(input.dataset.loanId);
                     const prop = input.dataset.prop;
@@ -965,6 +1081,40 @@
                 closeModal();
                 updateUI();
             });
+
+            // --- SAVINGS MODAL HANDLING ---
+            const openSavingsModal = (mode) => {
+                savingsModalMode = mode;
+                DOMElements.savingsModalTitle.textContent = mode === 'deposit' ? 'Deposit to Vault' : 'Withdraw from Vault';
+                DOMElements.savingsSubmitBtn.textContent = mode === 'deposit' ? 'Deposit' : 'Withdraw';
+                DOMElements.savingsModal.classList.remove('hidden');
+            };
+
+            const closeSavingsModal = () => DOMElements.savingsModal.classList.add('hidden');
+
+            DOMElements.depositSavingsBtn.addEventListener('click', () => openSavingsModal('deposit'));
+            DOMElements.withdrawSavingsBtn.addEventListener('click', () => openSavingsModal('withdraw'));
+            DOMElements.closeSavingsModalButton.addEventListener('click', closeSavingsModal);
+            DOMElements.cancelSavingsBtn.addEventListener('click', closeSavingsModal);
+
+            DOMElements.savingsForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const amount = parseFloat(DOMElements.savingsAmountInput.value);
+                if (isNaN(amount) || amount <= 0) return;
+
+                if (savingsModalMode === 'deposit') {
+                    state.savingsVault.balance += amount;
+                    addTransaction('savings_deposit', 'Deposit to Savings', amount);
+                } else {
+                    if (amount > state.savingsVault.balance) return alert('Withdrawal amount exceeds balance.');
+                    state.savingsVault.balance -= amount;
+                    addTransaction('savings_withdrawal', 'Withdrawal from Savings', amount);
+                }
+                DOMElements.savingsAmountInput.value = '';
+                closeSavingsModal();
+                updateUI();
+            });
+
 
             // --- INITIALIZATION ---
             loadState();
